@@ -1,1 +1,53 @@
-print("hello world")
+-- Cria a GUI principal
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local ToggleButton = Instance.new("TextButton")
+local DestroyButton = Instance.new("TextButton")
+
+-- Configurações da GUI principal
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Name = "MainGui"
+ScreenGui.ResetOnSpawn = false
+
+MainFrame.Parent = ScreenGui
+MainFrame.Name = "MainFrame"
+MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+MainFrame.Size = UDim2.new(0, 300, 0, 300)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -150)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+-- Configurações do botão de alternância (quadrado móvel)
+ToggleButton.Parent = ScreenGui
+ToggleButton.Name = "ToggleButton"
+ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+ToggleButton.Size = UDim2.new(0, 50, 0, 50)
+ToggleButton.Position = UDim2.new(0.9, -25, 0.1, -25)
+ToggleButton.Text = "Toggle"
+ToggleButton.Active = true
+ToggleButton.Draggable = true
+
+local guiVisible = true
+
+-- Função para alternar a visibilidade do MainFrame
+ToggleButton.MouseButton1Click:Connect(function()
+    guiVisible = not guiVisible
+    MainFrame.Visible = guiVisible
+end)
+
+-- Configurações do botão de destruir (no canto superior esquerdo do MainFrame)
+DestroyButton.Parent = MainFrame
+DestroyButton.Name = "DestroyButton"
+DestroyButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+DestroyButton.Size = UDim2.new(0, 50, 0, 50)
+DestroyButton.Position = UDim2.new(0, 0, 0, 0)
+DestroyButton.Text = "Destroy"
+DestroyButton.Active = true
+
+-- Função para destruir a GUI
+DestroyButton.MouseButton1Click:Connect(function()
+    ToggleButton:Destroy()
+    MainFrame:Destroy()
+    DestroyButton:Destroy()
+    ScreenGui:Destroy()
+end)
