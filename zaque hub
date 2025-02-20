@@ -3,6 +3,7 @@ local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local ToggleButton = Instance.new("TextButton")
 local DestroyButton = Instance.new("TextButton")
+local ESPButton = Instance.new("TextButton")
 
 -- Configurações da GUI principal
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -49,5 +50,47 @@ DestroyButton.MouseButton1Click:Connect(function()
     ToggleButton:Destroy()
     MainFrame:Destroy()
     DestroyButton:Destroy()
+    ESPButton:Destroy()
     ScreenGui:Destroy()
+end)
+
+-- Configurações do botão ESP Players
+ESPButton.Parent = MainFrame
+ESPButton.Name = "ESPButton"
+ESPButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+ESPButton.Size = UDim2.new(0, 100, 0, 50)
+ESPButton.Position = UDim2.new(0, 60, 0, 0)
+ESPButton.Text = "ESP Players Off"
+ESPButton.Active = true
+
+local espEnabled = false
+
+-- Função para alternar o ESP Players
+ESPButton.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    if espEnabled then
+        ESPButton.Text = "ESP Players On"
+        -- Código para ativar o ESP
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer then
+                local espBox = Instance.new("BoxHandleAdornment")
+                espBox.Name = "ESPBox"
+                espBox.Adornee = player.Character
+                espBox.Size = player.Character:GetExtentsSize()
+                espBox.Color3 = Color3.fromRGB(255, 0, 0)
+                espBox.Transparency = 0.5
+                espBox.AlwaysOnTop = true
+                espBox.ZIndex = 10
+                espBox.Parent = player.Character
+            end
+        end
+    else
+        ESPButton.Text = "ESP Players Off"
+        -- Código para desativar o ESP
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character and player.Character:FindFirstChild("ESPBox") then
+                player.Character:FindFirstChild("ESPBox"):Destroy()
+            end
+        end
+    end
 end)
