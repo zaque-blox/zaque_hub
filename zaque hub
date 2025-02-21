@@ -4,6 +4,9 @@ local MainFrame = Instance.new("Frame")
 local ToggleButton = Instance.new("TextButton")
 local DestroyButton = Instance.new("TextButton")
 local ESPButton = Instance.new("TextButton")
+local SpeedButton = Instance.new("TextButton")
+local JumpButton = Instance.new("TextButton")
+local FreezeCamButton = Instance.new("TextButton")
 
 -- Configurações da GUI principal
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -51,6 +54,9 @@ DestroyButton.MouseButton1Click:Connect(function()
     MainFrame:Destroy()
     DestroyButton:Destroy()
     ESPButton:Destroy()
+    SpeedButton:Destroy()
+    JumpButton:Destroy()
+    FreezeCamButton:Destroy()
     ScreenGui:Destroy()
 end)
 
@@ -58,39 +64,115 @@ end)
 ESPButton.Parent = MainFrame
 ESPButton.Name = "ESPButton"
 ESPButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-ESPButton.Size = UDim2.new(0, 100, 0, 50)
+ESPButton.Size = UDim2.new(0, 50, 0, 50)
 ESPButton.Position = UDim2.new(0, 60, 0, 0)
-ESPButton.Text = "ESP Players Off"
+ESPButton.Text = "ESP Off"
 ESPButton.Active = true
 
 local espEnabled = false
+local espBoxes = {}
 
 -- Função para alternar o ESP Players
 ESPButton.MouseButton1Click:Connect(function()
     espEnabled = not espEnabled
     if espEnabled then
-        ESPButton.Text = "ESP Players On"
-        -- Código para ativar o ESP
+        ESPButton.Text = "ESP On"
         for _, player in pairs(game.Players:GetPlayers()) do
             if player ~= game.Players.LocalPlayer then
                 local espBox = Instance.new("BoxHandleAdornment")
                 espBox.Name = "ESPBox"
                 espBox.Adornee = player.Character
-                espBox.Size = player.Character:GetExtentsSize()
-                espBox.Color3 = Color3.fromRGB(255, 0, 0)
+                espBox.Size = Vector3.new(2, 2, 2)
+                espBox.Color3 = Color3.fromRGB(0, 255, 0)
                 espBox.Transparency = 0.5
                 espBox.AlwaysOnTop = true
                 espBox.ZIndex = 10
                 espBox.Parent = player.Character
+                table.insert(espBoxes, espBox)
             end
         end
+        spawn(function()
+            while espEnabled do
+                for _, espBox in pairs(espBoxes) do
+                    espBox.Color3 = Color3.fromHSV(tick() % 5 / 5, 1, 1)
+                end
+                wait(0.1)
+            end
+        end)
     else
-        ESPButton.Text = "ESP Players Off"
-        -- Código para desativar o ESP
+        ESPButton.Text = "ESP Off"
         for _, player in pairs(game.Players:GetPlayers()) do
             if player.Character and player.Character:FindFirstChild("ESPBox") then
                 player.Character:FindFirstChild("ESPBox"):Destroy()
             end
         end
+        espBoxes = {}
     end
 end)
+
+-- Configurações do botão Speed
+SpeedButton.Parent = MainFrame
+SpeedButton.Name = "SpeedButton"
+SpeedButton.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
+SpeedButton.Size = UDim2.new(0, 50, 0, 50)
+SpeedButton.Position = UDim2.new(0, 120, 0, 0)
+SpeedButton.Text = "Speed"
+SpeedButton.Active = true
+
+local SpeedGui = Instance.new("Frame")
+local SpeedTextBox = Instance.new("TextBox")
+local SpeedActivateButton = Instance.new("TextButton")
+
+SpeedGui.Parent = ScreenGui
+SpeedGui.Name = "SpeedGui"
+SpeedGui.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+SpeedGui.Size = UDim2.new(0, 150, 0, 100)
+SpeedGui.Position = UDim2.new(0.5, -75, 0.5, -50)
+SpeedGui.Active = true
+SpeedGui.Draggable = true
+SpeedGui.Visible = false
+
+SpeedTextBox.Parent = SpeedGui
+SpeedTextBox.Name = "SpeedTextBox"
+SpeedTextBox.Size = UDim2.new(0, 100, 0, 30)
+SpeedTextBox.Position = UDim2.new(0.5, -50, 0.3, -15)
+SpeedTextBox.PlaceholderText = "1-500"
+SpeedTextBox.Text = ""
+
+SpeedActivateButton.Parent = SpeedGui
+SpeedActivateButton.Name = "SpeedActivateButton"
+SpeedActivateButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+SpeedActivateButton.Size = UDim2.new(0, 100, 0, 30)
+SpeedActivateButton.Position = UDim2.new(0.5, -50, 0.7, -15)
+SpeedActivateButton.Text = "Ativar"
+
+SpeedButton.MouseButton1Click:Connect(function()
+    SpeedGui.Visible = not SpeedGui.Visible
+end)
+
+SpeedActivateButton.MouseButton1Click:Connect(function()
+    local speedValue = tonumber(SpeedTextBox.Text)
+    if speedValue and speedValue >= 1 and speedValue <= 500 then
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speedValue
+        print("Velocidade alterada para: " .. speedValue)
+    else
+        print("Por favor, insira um valor entre 1 e 500.")
+    end
+end)
+
+-- Configurações do botão Jump
+JumpButton.Parent = MainFrame
+JumpButton.Name = "JumpButton"
+JumpButton.BackgroundColor3 = Color3.fromRGB(255, 255, 0)
+JumpButton.Size = UDim2.new(0, 50, 0, 50)
+JumpButton.Position = UDim2.new(0, 180, 0, 0)
+JumpButton.Text = "Jump"
+JumpButton.Active = true
+
+local JumpGui = Instance.new("Frame")
+local JumpTextBox = Instance.new("TextBox")
+local JumpActivateButton = Instance.new("TextButton")
+
+JumpGui.Parent = ScreenGui
+JumpGui.Name = "JumpGui"
+JumpGui.BackgroundColor3 = Color3
