@@ -1,62 +1,130 @@
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local RunService = game:GetService("RunService")
 
--- Cria uma ScreenGui para conter o botão
-local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = playerGui
-
--- Cria o botão ESP
-local espButton = Instance.new("TextButton")
-espButton.Size = UDim2.new(0, 100, 0, 50)
-espButton.Position = UDim2.new(1, -110, 1, -60)
-espButton.Text = "ESP Off"
-espButton.Parent = screenGui
-
+-- Variável para armazenar o estado do ESP
 local espOn = false
+local espButtonPosition = UDim2.new(1, -110, 1, -60) -- Posição inicial do botão ESP
 
--- Função para atualizar o ESP
-local function updateESP()
-    for _, player in pairs(game.Players:GetPlayers()) do
-        if player ~= game.Players.LocalPlayer and player.Character then
-            if espOn then
-                if not player.Character:FindFirstChild("Highlight") then
-                    local highlight = Instance.new("Highlight")
-                    highlight.Adornee = player.Character
-                    highlight.FillColor = Color3.new(1, 0, 0)
-                    highlight.OutlineColor = Color3.new(1, 0, 0)
-                    highlight.Parent = player.Character
-                end
-            else
-                local highlight = player.Character:FindFirstChild("Highlight")
-                if highlight then
-                    highlight:Destroy()
+-- Função para criar a GUI e o botão ESP
+local function createESPButton()
+    -- Verifica e remove qualquer botão ESP existente
+    if playerGui:FindFirstChild("ESP_ScreenGui") then
+        playerGui:FindFirstChild("ESP_ScreenGui"):Destroy()
+    end
+
+    -- Cria uma ScreenGui para conter o botão
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "ESP_ScreenGui"
+    screenGui.Parent = playerGui
+    screenGui.ResetOnSpawn = false
+
+    -- Cria o botão ESP
+    local espButton = Instance.new("TextButton")
+    espButton.Size = UDim2.new(0, 100, 0, 50)
+    espButton.Position = espButtonPosition
+    espButton.Text = espOn and "ESP On" or "ESP Off"
+    espButton.Parent = screenGui
+
+    local debounce = false
+    local dragging = false
+    local lastToggleTime = tick()
+
+    -- Função para atualizar o ESP
+    local function updateESP()
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Character then
+                if espOn then
+                    if not player.Character:FindFirstChild("Highlight") then
+                        local highlight = Instance.new("Highlight")
+                        highlight.Adornee = player.Character
+                        highlight.FillColor = Color3.new(1, 0, 0)
+                        highlight.OutlineColor = Color3.new(1, 0, 0)
+                        highlight.Parent = player.Character
+                    end
+                else
+                    local highlight = player.Character:FindFirstChild("Highlight")
+                    if highlight then
+                        highlight:Destroy()
+                    end
                 end
             end
         end
     end
-end
 
--- Evento de clique do botão
-espButton.MouseButton1Click:Connect(function()
-    espOn = not espOn
-    espButton.Text = espOn and "ESP On" or "ESP Off"
-    updateESP()
-end)
-
--- Atualiza o ESP a cada 2 segundos
-while true do
-    if espOn then
+    -- Evento de clique do botão
+    espButton.MouseButton1Click:Connect(function()
+        if debounce or dragging then return end
+        local currentTime = tick()
+        if currentTime - lastToggleTime < 0.04 then return end -- Verifica se 40 milissegundos se passaram
+        debounce = true
+        espOn = not espOn
+        espButton.Text = espOn and "ESP On" or "ESP Off"
         updateESP()
+        lastToggleTime = currentTime
+        wait(0.5)
+        debounce = false
+    end)
+
+    -- Função para iniciar o arrasto
+    local function onInputBegan(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            mousePos = input.Position
+            framePos = espButton.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                    espButtonPosition = espButton.Position -- Atualiza a posição do botão
+                end
+            end)
+        elseif input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            mousePos = input.Position
+            framePos = espButton.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                    espButtonPosition = espButton.Position -- Atualiza a posição do botão
+                end
+            end)
+        end
     end
-    wait(2)
+
+    -- Função para atualizar a posição do botão durante o arrasto
+    local function onInputChanged(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - mousePos
+            espButton.Position = UDim2.new(
+                framePos.X.Scale,
+                framePos.X.Offset + delta.X,
+                framePos.Y.Scale,
+                framePos.Y.Offset + delta.Y
+            )
+        end
+    end
+
+    espButton.InputBegan:Connect(onInputBegan)
+    espButton.InputChanged:Connect(onInputChanged)
+
+    -- Atualiza o ESP a cada 40 milissegundos
+    RunService.Heartbeat:Connect(function()
+        if espOn then
+            updateESP()
+        end
+    end)
+
+    -- Atualiza o ESP quando novos jogadores entram no jogo
+    game.Players.PlayerAdded:Connect(updateESP)
+    game.Players.PlayerRemoving:Connect(updateESP)
 end
 
--- Garantir que o GUI não desapareça quando o jogador morrer
-player.CharacterAdded:Connect(function(character)
-    if not screenGui.Parent then
-        screenGui.Parent = playerGui
-    end
-end)
+-- Cria o botão ESP inicialmente
+createESPButton()
 
--- Garantir que o GUI seja recriado ao respawn
-screenGui.ResetOnSpawn = false
+-- Recria o botão ESP quando o personagem do jogador é adicionado
+player.CharacterAdded:Connect(function()
+    createESPButton()
+end)
