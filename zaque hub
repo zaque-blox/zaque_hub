@@ -30,6 +30,45 @@ local function createESPButton()
     local dragging = false
     local lastToggleTime = tick()
 
+    -- Função para criar ou atualizar a barra de vida de um jogador
+    local function createOrUpdateHealthBar(player)
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            -- Remove barra de vida existente, se houver
+            if player.Character:FindFirstChild("HealthBar") then
+                player.Character:FindFirstChild("HealthBar"):Destroy()
+            end
+
+            -- Cria nova barra de vida
+            local healthBar = Instance.new("BillboardGui")
+            healthBar.Name = "HealthBar"
+            healthBar.Size = UDim2.new(4, 0, 0.6, 0) -- Ajusta a largura e altura da barra
+            healthBar.StudsOffset = Vector3.new(0, 3, 0) -- Eleva a barra acima do player
+            healthBar.AlwaysOnTop = true
+            healthBar.Adornee = player.Character:WaitForChild("HumanoidRootPart")
+            healthBar.Parent = player.Character
+
+            local barBackground = Instance.new("Frame")
+            barBackground.Size = UDim2.new(1, 0, 1, 0)
+            barBackground.BackgroundColor3 = Color3.new(0, 0, 0)
+            barBackground.BorderSizePixel = 1 -- Contorno preto fino
+            barBackground.Parent = healthBar
+
+            local bar = Instance.new("Frame")
+            bar.Size = UDim2.new(player.Character.Humanoid.Health / player.Character.Humanoid.MaxHealth, 0, 1, 0)
+            bar.BackgroundColor3 = Color3.new(0, 1, 0)
+            bar.BorderSizePixel = 0
+            bar.Parent = barBackground
+
+            -- Atualiza a barra de vida quando a saúde do jogador muda
+            player.Character.Humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+                if player.Character and player.Character:FindFirstChild("Humanoid") then
+                    local healthPercentage = player.Character.Humanoid.Health / player.Character.Humanoid.MaxHealth
+                    bar.Size = UDim2.new(healthPercentage, 0, 1, 0) -- Garante que a barra não fique totalmente preta
+                end
+            end)
+        end
+    end
+
     -- Função para atualizar o ESP
     local function updateESP()
         for _, player in pairs(game.Players:GetPlayers()) do
@@ -42,10 +81,15 @@ local function createESPButton()
                         highlight.OutlineColor = Color3.new(1, 0, 0)
                         highlight.Parent = player.Character
                     end
+                    createOrUpdateHealthBar(player)
                 else
                     local highlight = player.Character:FindFirstChild("Highlight")
                     if highlight then
                         highlight:Destroy()
+                    end
+                    local healthBar = player.Character:FindFirstChild("HealthBar")
+                    if healthBar then
+                        healthBar:Destroy()
                     end
                 end
             end
@@ -95,7 +139,7 @@ local function createESPButton()
 
     -- Função para atualizar a posição do botão durante o arrasto
     local function onInputChanged(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType.Touch) then
             local delta = input.Position - mousePos
             espButton.Position = UDim2.new(
                 framePos.X.Scale,
@@ -117,8 +161,18 @@ local function createESPButton()
     end)
 
     -- Atualiza o ESP quando novos jogadores entram no jogo
-    game.Players.PlayerAdded:Connect(updateESP)
-    game.Players.PlayerRemoving:Connect(updateESP)
+    game.Players.PlayerAdded:Connect(function(player)
+        player.CharacterAdded:Connect(function()
+            updateESP()
+        end)
+    end)
+
+    -- Atualiza o ESP quando um jogador renasce
+    for _, player in pairs(game.Players:GetPlayers()) do
+        player.CharacterAdded:Connect(function()
+            updateESP()
+        end)
+    end
 end
 
 -- Cria o botão ESP inicialmente
