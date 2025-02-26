@@ -199,7 +199,7 @@ Tabs.Visual:AddToggle("EspHealthBarToggle", {
 game.Players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(function()
         if espAtivo then
-            ativarESPPlayer()
+            updateESP()
         end
         if espHealthBarAtivo then
             createOrUpdateHealthBar(player)
@@ -211,24 +211,17 @@ end)
 for _, player in pairs(game.Players:GetPlayers()) do
     player.CharacterAdded:Connect(function()
         if espAtivo then
-            ativarESPPlayer()
+            updateESP()
         end
         if espHealthBarAtivo then
             createOrUpdateHealthBar(player)
         end
     end)
-end)
+end
 
 -- Atualiza o ESP a cada 40 milissegundos
 RunService.Heartbeat:Connect(function()
     if espAtivo then
-        ativarESPPlayer()
-    end
-    if espHealthBarAtivo then
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player ~= game.Players.LocalPlayer then
-                createOrUpdateHealthBar(player)
-            end
-        end
+        updateESP()
     end
 end)
