@@ -42,7 +42,9 @@ Tabs.Settings:AddParagraph({
 local espAtivo = false
 local espHealthBarAtivo = false
 local espLineAtivo = false
+local espHitboxAtivo = false
 local espLines = {}
+local espHitboxes = {}
 
 -- Função para criar ou atualizar a barra de vida
 local function createOrUpdateHealthBar(player)
@@ -171,6 +173,45 @@ local function desativarESPLine()
     table.clear(espLines)
 end
 
+-- Função ESP Hitbox (verde com transparência)
+local function ativarESPHitbox()
+    espHitboxAtivo = true
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            -- Criando a hitbox inicialmente
+            local humanoidRootPart = player.Character.HumanoidRootPart
+            local hitbox = Instance.new("Part")
+            hitbox.Name = "ESPHitbox"
+            hitbox.Size = humanoidRootPart.Size + Vector3.new(2, 3, 2)  -- Ajuste no tamanho
+            hitbox.Position = humanoidRootPart.Position
+            hitbox.Anchored = true
+            hitbox.CanCollide = false
+            hitbox.Color = Color3.fromRGB(0, 255, 0)  -- Cor verde
+            hitbox.Material = Enum.Material.SmoothPlastic
+            hitbox.Transparency = 0.5  -- Transparência 50%
+            hitbox.Parent = workspace
+            table.insert(espHitboxes, hitbox)
+
+            -- Atualizando a posição da hitbox durante o jogo
+            game:GetService("RunService").Heartbeat:Connect(function()
+                if espHitboxAtivo and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    hitbox.Position = player.Character.HumanoidRootPart.Position
+                end
+            end)
+        end
+    end
+end
+
+local function desativarESPHitbox()
+    espHitboxAtivo = false
+    for _, hitbox in pairs(espHitboxes) do
+        if hitbox then
+            hitbox:Destroy()
+        end
+    end
+    table.clear(espHitboxes)
+end
+
 -- Botões na Aba Visual
 Tabs.Visual:AddToggle("EspPlayerToggle", {
     Title = "ESP Player",
@@ -211,11 +252,25 @@ Tabs.Visual:AddToggle("EspLineToggle", {
     end
 })
 
+Tabs.Visual:AddToggle("EspHitboxToggle", {
+    Title = "ESP Hitbox",
+    Description = "Ative ou desative a exibição da hitbox dos jogadores",
+    Default = false,
+    Callback = function(state)
+        if state then
+            ativarESPHitbox()
+        else
+            desativarESPHitbox()
+        end
+    end
+})
+
 -- Atualiza ESP quando novos jogadores entram
 game.Players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(function()
         if espAtivo then ativarESPPlayer() end
         if espHealthBarAtivo then ativarESPHealthBar() end
         if espLineAtivo then ativarESPLine() end
+        if espHitboxAtivo then ativarESPHitbox() end
     end)
 end)
