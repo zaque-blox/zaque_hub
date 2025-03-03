@@ -7,10 +7,10 @@ local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/
 
 -- Criar a Janela Principal
 local Window = Fluent:CreateWindow({
-    Title = "zaque hub " .. Fluent.Version,
+    Title = "zaque hub",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
-    Theme = "Dark"
+    Theme = "Darker"
 })
 
 -- Criar as abas
@@ -29,7 +29,17 @@ Tabs.Credits:AddParagraph({
 
 Tabs.Credits:AddParagraph({
     Title = "Versão",
-    Content = "1.1.0"
+    Content = "2.0"
+})
+
+-- Adicionar o botão "grupo do zap"
+Tabs.Credits:AddButton({
+    Title = "Grupo do Zap",
+    Description = "Clique para copiar o link do grupo do WhatsApp",
+    Callback = function()
+        -- Copiar link do grupo para a área de transferência
+        setclipboard("https://chat.whatsapp.com/CpJRk0pToQsKx94iKIm2a7")
+    end
 })
 
 -- Aba Settings
