@@ -16,7 +16,7 @@ local Window = Fluent:CreateWindow({
 -- Criar as abas
 local Tabs = {
     Credits = Window:AddTab({ Title = "🌟 Credits" }),
-    Settings = Window:AddTab({ Title = "⚙️ Settings" }), -- Ícone removido
+    Settings = Window:AddTab({ Title = "⚙️ Settings" }),
     Main = Window:AddTab({ Title = "🛠️ Main" }),
     Visual = Window:AddTab({ Title = "😎 Visual" })
 }
@@ -38,52 +38,23 @@ Tabs.Settings:AddParagraph({
     Content = "Aqui você pode ajustar suas preferências!"
 })
 
--- Adicionar o Toggle "Notificação" na aba Settings
-Tabs.Settings:AddToggle("NotificacaoToggle", {
-    Title = "Notificação",
-    Description = "Ativar ou desativar notificações do script",
-    Default = false,
-    Callback = function(state)
-        if state then
-            print("Notificações Ativadas")
-            -- Código para ativar notificações
-        else
-            print("Notificações Desativadas")
-            -- Código para desativar notificações
-        end
-    end
-})
-
--- Aba Main
-Tabs.Main:AddParagraph({
-    Title = "Bem-vindo ao Hub!",
-    Content = "Este é o hub criado com a biblioteca Fluent!"
-})
-
--- Aba Visual
-Tabs.Visual:AddParagraph({
-    Title = "Personalização Visual",
-    Content = "Aqui você pode ajustar as opções visuais do jogo."
-})
-
--- Variáveis para verificar se o ESP está ativado ou não
+-- Variáveis para ESP
 local espAtivo = false
 local espHealthBarAtivo = false
-local espParts = {}
+local espLineAtivo = false
+local espLines = {}
 
--- Função para criar ou atualizar a barra de vida de um jogador
+-- Função para criar ou atualizar a barra de vida
 local function createOrUpdateHealthBar(player)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        -- Remove barra de vida existente, se houver
         if player.Character:FindFirstChild("HealthBar") then
             player.Character:FindFirstChild("HealthBar"):Destroy()
         end
 
-        -- Cria nova barra de vida
         local healthBar = Instance.new("BillboardGui")
         healthBar.Name = "HealthBar"
-        healthBar.Size = UDim2.new(4, 0, 0.6, 0) -- Ajusta a largura e altura da barra
-        healthBar.StudsOffset = Vector3.new(0, 3, 0) -- Eleva a barra acima do player
+        healthBar.Size = UDim2.new(4, 0, 0.6, 0)
+        healthBar.StudsOffset = Vector3.new(0, 3, 0)
         healthBar.AlwaysOnTop = true
         healthBar.Adornee = player.Character:WaitForChild("HumanoidRootPart")
         healthBar.Parent = player.Character
@@ -91,7 +62,7 @@ local function createOrUpdateHealthBar(player)
         local barBackground = Instance.new("Frame")
         barBackground.Size = UDim2.new(1, 0, 1, 0)
         barBackground.BackgroundColor3 = Color3.new(0, 0, 0)
-        barBackground.BorderSizePixel = 1 -- Contorno preto fino
+        barBackground.BorderSizePixel = 1
         barBackground.Parent = healthBar
 
         local bar = Instance.new("Frame")
@@ -100,20 +71,19 @@ local function createOrUpdateHealthBar(player)
         bar.BorderSizePixel = 0
         bar.Parent = barBackground
 
-        -- Atualiza a barra de vida quando a saúde do jogador muda
         player.Character.Humanoid:GetPropertyChangedSignal("Health"):Connect(function()
             if player.Character and player.Character:FindFirstChild("Humanoid") then
                 local healthPercentage = player.Character.Humanoid.Health / player.Character.Humanoid.MaxHealth
-                bar.Size = UDim2.new(healthPercentage, 0, 1, 0) -- Garante que a barra não fique totalmente preta
+                bar.Size = UDim2.new(healthPercentage, 0, 1, 0)
             end
         end)
     end
 end
 
--- Função para ativar o ESP Player
+-- Funções ESP Player
 local function ativarESPPlayer()
     espAtivo = true
-    game:GetService("RunService").RenderStepped:Connect(function()
+    RunService.RenderStepped:Connect(function()
         if not espAtivo then return end
         for _, player in pairs(game.Players:GetPlayers()) do
             if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
@@ -129,7 +99,6 @@ local function ativarESPPlayer()
     end)
 end
 
--- Função para desativar o ESP Player
 local function desativarESPPlayer()
     espAtivo = false
     for _, player in pairs(game.Players:GetPlayers()) do
@@ -139,7 +108,7 @@ local function desativarESPPlayer()
     end
 end
 
--- Função para ativar o ESP Health Bar
+-- Função ESP Health Bar
 local function ativarESPHealthBar()
     espHealthBarAtivo = true
     RunService.Heartbeat:Connect(function()
@@ -153,7 +122,6 @@ local function ativarESPHealthBar()
     end)
 end
 
--- Função para desativar o ESP Health Bar
 local function desativarESPHealthBar()
     espHealthBarAtivo = false
     for _, player in pairs(game.Players:GetPlayers()) do
@@ -163,65 +131,91 @@ local function desativarESPHealthBar()
     end
 end
 
--- Adicionar o Toggle "ESP Player" na aba Visual
+-- Função ESP Line (Linha Vermelha)
+local function ativarESPLine()
+    espLineAtivo = true
+    RunService.RenderStepped:Connect(function()
+        if not espLineAtivo then return end
+        for _, line in pairs(espLines) do
+            if line then line:Destroy() end
+        end
+        table.clear(espLines)
+
+        for _, target in pairs(game.Players:GetPlayers()) do
+            if target ~= player and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                local targetHRP = target.Character.HumanoidRootPart
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local playerHRP = player.Character.HumanoidRootPart
+                    local line = Instance.new("Part")
+                    line.Name = "ESPLine"
+                    line.Size = Vector3.new(0.1, 0.1, (targetHRP.Position - playerHRP.Position).magnitude)
+                    line.Anchored = true
+                    line.CanCollide = false
+                    line.Color = Color3.new(1, 0, 0) -- Vermelho
+                    line.Material = Enum.Material.Neon
+                    line.Transparency = 0.5
+                    line.Parent = workspace
+                    line.CFrame = CFrame.new((playerHRP.Position + targetHRP.Position) / 2, targetHRP.Position)
+                    table.insert(espLines, line)
+                end
+            end
+        end
+    end)
+end
+
+local function desativarESPLine()
+    espLineAtivo = false
+    for _, line in pairs(espLines) do
+        if line then line:Destroy() end
+    end
+    table.clear(espLines)
+end
+
+-- Botões na Aba Visual
 Tabs.Visual:AddToggle("EspPlayerToggle", {
     Title = "ESP Player",
     Description = "Ative ou desative a exibição dos jogadores",
     Default = false,
     Callback = function(state)
         if state then
-            print("ESP Player Ativado")
             ativarESPPlayer()
         else
-            print("ESP Player Desativado")
             desativarESPPlayer()
         end
     end
 })
 
--- Adicionar o Toggle "ESP Health Bar" na aba Visual
 Tabs.Visual:AddToggle("EspHealthBarToggle", {
     Title = "ESP Health Bar",
-    Description = "Ative ou desative a exibição da barra de vida dos jogadores",
+    Description = "Ative ou desative a exibição da barra de vida",
     Default = false,
     Callback = function(state)
         if state then
-            print("ESP Health Bar Ativado")
             ativarESPHealthBar()
         else
-            print("ESP Health Bar Desativado")
             desativarESPHealthBar()
         end
     end
 })
 
--- Atualiza o ESP e barras de saúde quando novos jogadores entram no jogo
+Tabs.Visual:AddToggle("EspLineToggle", {
+    Title = "ESP Line",
+    Description = "Ative ou desative as linhas de ESP entre jogadores",
+    Default = false,
+    Callback = function(state)
+        if state then
+            ativarESPLine()
+        else
+            desativarESPLine()
+        end
+    end
+})
+
+-- Atualiza ESP quando novos jogadores entram
 game.Players.PlayerAdded:Connect(function(player)
     player.CharacterAdded:Connect(function()
-        if espAtivo then
-            updateESP()
-        end
-        if espHealthBarAtivo then
-            createOrUpdateHealthBar(player)
-        end
+        if espAtivo then ativarESPPlayer() end
+        if espHealthBarAtivo then ativarESPHealthBar() end
+        if espLineAtivo then ativarESPLine() end
     end)
-end)
-
--- Atualiza o ESP e barras de saúde quando um jogador renasce
-for _, player in pairs(game.Players:GetPlayers()) do
-    player.CharacterAdded:Connect(function()
-        if espAtivo then
-            updateESP()
-        end
-        if espHealthBarAtivo then
-            createOrUpdateHealthBar(player)
-        end
-    end)
-end
-
--- Atualiza o ESP a cada 40 milissegundos
-RunService.Heartbeat:Connect(function()
-    if espAtivo then
-        updateESP()
-    end
 end)
