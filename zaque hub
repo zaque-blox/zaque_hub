@@ -222,6 +222,53 @@ local function desativarESPHitbox()
     table.clear(espHitboxes)
 end
 
+-- Função Cam Lock
+local camLockAtivo = false
+
+local function ativarCamLock()
+    camLockAtivo = true
+    RunService.RenderStepped:Connect(function()
+        if camLockAtivo then
+            local nearestPlayer = nil
+            local minDistance = math.huge
+
+            for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+                if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    local distance = (player.Character.HumanoidRootPart.Position - otherPlayer.Character.HumanoidRootPart.Position).magnitude
+                    if distance < minDistance then
+                        minDistance = distance
+                        nearestPlayer = otherPlayer
+                    end
+                end
+            end
+
+            if nearestPlayer then
+                local camera = game.Workspace.CurrentCamera
+                local targetHRP = nearestPlayer.Character.HumanoidRootPart
+                camera.CFrame = CFrame.new(camera.CFrame.Position, targetHRP.Position)
+            end
+        end
+    end)
+end
+
+local function desativarCamLock()
+    camLockAtivo = false
+end
+
+-- Botões na Aba Main
+Tabs.Main:AddToggle("CamLockToggle", {
+    Title = "Cam Lock",
+    Description = "Ative ou desative o bloqueio da câmera no inimigo mais próximo",
+    Default = false,
+    Callback = function(state)
+        if state then
+            ativarCamLock()
+        else
+            desativarCamLock()
+        end
+    end
+})
+
 -- Botões na Aba Visual
 Tabs.Visual:AddToggle("EspPlayerToggle", {
     Title = "ESP Player",
