@@ -1,0 +1,333 @@
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local RunService = game:GetService("RunService")
+
+-- Carregar a biblioteca Fluent
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+-- Criar a Janela Principal
+local Window = Fluent:CreateWindow({
+    Title = "zaque hub",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Theme = "Light"
+})
+
+-- Criar as abas
+local Tabs = {
+    Credits = Window:AddTab({ Title = "🌟 Credits" }),
+    Settings = Window:AddTab({ Title = "⚙️ Settings" }),
+    Main = Window:AddTab({ Title = "🛠️ Main" }),
+    Visual = Window:AddTab({ Title = "😎 Visual" })
+}
+
+-- Aba Credits
+Tabs.Credits:AddParagraph({
+    Title = "Criador do Hub",
+    Content = "Criador do hub feito por [ zaque_blox ]"
+})
+
+Tabs.Credits:AddParagraph({
+    Title = "Versão",
+    Content = "2.0"
+})
+
+-- Adicionar o botão "grupo do zap"
+Tabs.Credits:AddButton({
+    Title = "Grupo do Zap",
+    Description = "Clique para copiar o link do grupo do WhatsApp",
+    Callback = function()
+        -- Copiar link do grupo para a área de transferência
+        setclipboard("https://chat.whatsapp.com/CpJRk0pToQsKx94iKIm2a7")
+    end
+})
+
+-- Aba Settings
+Tabs.Settings:AddParagraph({
+    Title = "Configurações",
+    Content = "Aqui você pode ajustar suas preferências!"
+})
+
+-- Variáveis para ESP
+local espAtivo = false
+local espHealthBarAtivo = false
+local espLineAtivo = false
+local espHitboxAtivo = false
+local espLines = {}
+local espHitboxes = {}
+
+-- Função para criar ou atualizar a barra de vida
+local function createOrUpdateHealthBar(player)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        if player.Character:FindFirstChild("HealthBar") then
+            player.Character:FindFirstChild("HealthBar"):Destroy()
+        end
+
+        local healthBar = Instance.new("BillboardGui")
+        healthBar.Name = "HealthBar"
+        healthBar.Size = UDim2.new(4, 0, 0.6, 0)
+        healthBar.StudsOffset = Vector3.new(0, 3, 0)
+        healthBar.AlwaysOnTop = true
+        healthBar.Adornee = player.Character:WaitForChild("HumanoidRootPart")
+        healthBar.Parent = player.Character
+
+        local barBackground = Instance.new("Frame")
+        barBackground.Size = UDim2.new(1, 0, 1, 0)
+        barBackground.BackgroundColor3 = Color3.new(0, 0, 0)
+        barBackground.BorderSizePixel = 1
+        barBackground.Parent = healthBar
+
+        local bar = Instance.new("Frame")
+        bar.Size = UDim2.new(player.Character.Humanoid.Health / player.Character.Humanoid.MaxHealth, 0, 1, 0)
+        bar.BackgroundColor3 = Color3.new(0, 1, 0)
+        bar.BorderSizePixel = 0
+        bar.Parent = barBackground
+
+        player.Character.Humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+            if player.Character and player.Character:FindFirstChild("Humanoid") then
+                local healthPercentage = player.Character.Humanoid.Health / player.Character.Humanoid.MaxHealth
+                bar.Size = UDim2.new(healthPercentage, 0, 1, 0)
+            end
+        end)
+    end
+end
+
+-- Funções ESP Player
+local function ativarESPPlayer()
+    espAtivo = true
+    RunService.RenderStepped:Connect(function()
+        if not espAtivo then return end
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                if not player.Character:FindFirstChild("Highlight") then
+                    local highlight = Instance.new("Highlight")
+                    highlight.Adornee = player.Character
+                    highlight.FillColor = Color3.new(1, 0, 0)
+                    highlight.OutlineColor = Color3.new(1, 0, 0)
+                    highlight.Parent = player.Character
+                end
+            end
+        end
+    end)
+end
+
+local function desativarESPPlayer()
+    espAtivo = false
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Highlight") then
+            player.Character.Highlight:Destroy()
+        end
+    end
+end
+
+-- Função ESP Health Bar
+local function ativarESPHealthBar()
+    espHealthBarAtivo = true
+    RunService.Heartbeat:Connect(function()
+        if espHealthBarAtivo then
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer then
+                    createOrUpdateHealthBar(player)
+                end
+            end
+        end
+    end)
+end
+
+local function desativarESPHealthBar()
+    espHealthBarAtivo = false
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HealthBar") then
+            player.Character.HealthBar:Destroy()
+        end
+    end
+end
+
+-- Função ESP Line (Linha Vermelha)
+local function ativarESPLine()
+    espLineAtivo = true
+    RunService.RenderStepped:Connect(function()
+        if not espLineAtivo then return end
+        for _, line in pairs(espLines) do
+            if line then line:Destroy() end
+        end
+        table.clear(espLines)
+
+        for _, target in pairs(game.Players:GetPlayers()) do
+            if target ~= player and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                local targetHRP = target.Character.HumanoidRootPart
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local playerHRP = player.Character.HumanoidRootPart
+                    local line = Instance.new("Part")
+                    line.Name = "ESPLine"
+                    line.Size = Vector3.new(0.1, 0.1, (targetHRP.Position - playerHRP.Position).magnitude)
+                    line.Anchored = true
+                    line.CanCollide = false
+                    line.Color = Color3.new(1, 0, 0) -- Vermelho
+                    line.Material = Enum.Material.Neon
+                    line.Transparency = 0.5
+                    line.Parent = workspace
+                    line.CFrame = CFrame.new((playerHRP.Position + targetHRP.Position) / 2, targetHRP.Position)
+                    table.insert(espLines, line)
+                end
+            end
+        end
+    end)
+end
+
+local function desativarESPLine()
+    espLineAtivo = false
+    for _, line in pairs(espLines) do
+        if line then line:Destroy() end
+    end
+    table.clear(espLines)
+end
+
+-- Função ESP Hitbox (verde com transparência)
+local function ativarESPHitbox()
+    espHitboxAtivo = true
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            -- Criando a hitbox inicialmente
+            local humanoidRootPart = player.Character.HumanoidRootPart
+            local hitbox = Instance.new("Part")
+            hitbox.Name = "ESPHitbox"
+            hitbox.Size = humanoidRootPart.Size + Vector3.new(2, 3, 2)  -- Ajuste no tamanho
+            hitbox.Position = humanoidRootPart.Position
+            hitbox.Anchored = true
+            hitbox.CanCollide = false
+            hitbox.Color = Color3.fromRGB(0, 255, 0)  -- Cor verde
+            hitbox.Material = Enum.Material.SmoothPlastic
+            hitbox.Transparency = 0.5  -- Transparência 50%
+            hitbox.Parent = workspace
+            table.insert(espHitboxes, hitbox)
+
+            -- Atualizando a posição da hitbox durante o jogo
+            game:GetService("RunService").Heartbeat:Connect(function()
+                if espHitboxAtivo and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    hitbox.Position = player.Character.HumanoidRootPart.Position
+                end
+            end)
+        end
+    end
+end
+
+local function desativarESPHitbox()
+    espHitboxAtivo = false
+    for _, hitbox in pairs(espHitboxes) do
+        if hitbox then
+            hitbox:Destroy()
+        end
+    end
+    table.clear(espHitboxes)
+end
+
+-- Função Cam Lock
+local camLockAtivo = false
+
+local function ativarCamLock()
+    camLockAtivo = true
+    RunService.RenderStepped:Connect(function()
+        if camLockAtivo then
+            local nearestPlayer = nil
+            local minDistance = math.huge
+
+            for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+                if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    local distance = (player.Character.HumanoidRootPart.Position - otherPlayer.Character.HumanoidRootPart.Position).magnitude
+                    if distance < minDistance then
+                        minDistance = distance
+                        nearestPlayer = otherPlayer
+                    end
+                end
+            end
+
+            if nearestPlayer then
+                local camera = game.Workspace.CurrentCamera
+                local targetHRP = nearestPlayer.Character.HumanoidRootPart
+                camera.CFrame = CFrame.new(camera.CFrame.Position, targetHRP.Position)
+            end
+        end
+    end)
+end
+
+local function desativarCamLock()
+    camLockAtivo = false
+end
+
+-- Botões na Aba Main
+Tabs.Main:AddToggle("CamLockToggle", {
+    Title = "Cam Lock",
+    Description = "Ative ou desative o bloqueio da câmera no inimigo mais próximo",
+    Default = false,
+    Callback = function(state)
+        if state then
+            ativarCamLock()
+        else
+            desativarCamLock()
+        end
+    end
+})
+
+-- Botões na Aba Visual
+Tabs.Visual:AddToggle("EspPlayerToggle", {
+    Title = "ESP Player",
+    Description = "Ative ou desative a exibição dos jogadores",
+    Default = false,
+    Callback = function(state)
+        if state then
+            ativarESPPlayer()
+        else
+            desativarESPPlayer()
+        end
+    end
+})
+
+Tabs.Visual:AddToggle("EspHealthBarToggle", {
+    Title = "ESP Health Bar",
+    Description = "Ative ou desative a exibição da barra de vida",
+    Default = false,
+    Callback = function(state)
+        if state then
+            ativarESPHealthBar()
+        else
+            desativarESPHealthBar()
+        end
+    end
+})
+
+Tabs.Visual:AddToggle("EspLineToggle", {
+    Title = "ESP Line",
+    Description = "Ative ou desative as linhas de ESP entre jogadores",
+    Default = false,
+    Callback = function(state)
+        if state then
+            ativarESPLine()
+        else
+            desativarESPLine()
+        end
+    end
+})
+
+Tabs.Visual:AddToggle("EspHitboxToggle", {
+    Title = "ESP Hitbox",
+    Description = "Ative ou desative a exibição da hitbox dos jogadores",
+    Default = false,
+    Callback = function(state)
+        if state then
+            ativarESPHitbox()
+        else
+            desativarESPHitbox()
+        end
+    end
+})
+
+-- Atualiza ESP quando novos jogadores entram
+game.Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        if espAtivo then ativarESPPlayer() end
+        if espHealthBarAtivo then ativarESPHealthBar() end
+        if espLineAtivo then ativarESPLine() end
+        if espHitboxAtivo then ativarESPHitbox() end
+    end)
+end)
