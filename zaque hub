@@ -18,8 +18,15 @@ local Tabs = {
     Credits = Window:AddTab({ Title = "🌟 Credits" }),
     Settings = Window:AddTab({ Title = "⚙️ Settings" }),
     Main = Window:AddTab({ Title = "🛠️ Main" }),
-    Visual = Window:AddTab({ Title = "😎 Visual" })
+    Visual = Window:AddTab({ Title = "😎 Visual" }),
+    Combate = Window:AddTab({ Title = "⚔️ Combate" }),  -- Aba Combate
 }
+
+-- Adicionando apenas o título "Aim" na aba Combate
+Tabs.Combate:AddParagraph({
+    Title = "Aim",
+    Content = ""  -- Conteúdo removido
+})
 
 -- Aba Credits
 Tabs.Credits:AddParagraph({
@@ -222,10 +229,10 @@ local function desativarESPHitbox()
     table.clear(espHitboxes)
 end
 
--- Função Cam Lock
+-- Função Aimbot
 local camLockAtivo = false
 
-local function ativarCamLock()
+local function ativarAimbot()
     camLockAtivo = true
     RunService.RenderStepped:Connect(function()
         if camLockAtivo then
@@ -251,20 +258,20 @@ local function ativarCamLock()
     end)
 end
 
-local function desativarCamLock()
+local function desativarAimbot()
     camLockAtivo = false
 end
 
--- Botões na Aba Main
-Tabs.Main:AddToggle("CamLockToggle", {
-    Title = "Cam Lock",
-    Description = "Ative ou desative o bloqueio da câmera no inimigo mais próximo",
+-- Botões na Aba Combate
+Tabs.Combate:AddToggle("AimbotToggle", {
+    Title = "Aimbot",  -- Nome do botão atualizado para "Aimbot"
+    Description = "Ative ou desative o Aimbot (bloqueio da câmera no inimigo mais próximo)",
     Default = false,
     Callback = function(state)
         if state then
-            ativarCamLock()
+            ativarAimbot()
         else
-            desativarCamLock()
+            desativarAimbot()
         end
     end
 })
