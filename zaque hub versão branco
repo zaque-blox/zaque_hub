@@ -9,7 +9,7 @@ local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/
 local Window = Fluent:CreateWindow({
     Title = "zaque hub",
     TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
+    Size = UDim2.fromOffset(470, 360),
     Theme = "Light"
 })
 
@@ -25,7 +25,7 @@ local Tabs = {
 -- Adicionando apenas o título "Aim" na aba Combate
 Tabs.Combate:AddParagraph({
     Title = "Aim",
-    Content = ""  -- Conteúdo removido
+    Content = "sessão Aimbot"  -- Conteúdo removido
 })
 
 -- Aba Credits
