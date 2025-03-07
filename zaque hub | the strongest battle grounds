@@ -1,0 +1,36 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Fluent " .. Fluent.Version,
+    TabWidth = 160, 
+    Size = UDim2.fromOffset(580, 460),
+    Theme = "Dark"
+})
+
+local Tabs = {
+    Credits = Window:AddTab({ Title = "🌟 Credits" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" }),
+    Main = Window:AddTab({ Title = "🛠️ Main" }) -- Renomeado e colocado na última posição
+}
+
+-- Exemplo de conteúdo para a aba "Credits"
+Tabs.Credits:AddParagraph({
+    Title = "Sobre",
+    Content = "Este script foi criado utilizando a biblioteca Fluent para melhorar a interface no Roblox."
+})
+
+Tabs.Credits:AddButton({
+    Title = "GitHub da Fluent",
+    Callback = function()
+        setclipboard("https://github.com/dawid-scripts/Fluent") -- Copia o link do GitHub para a área de transferência
+        Fluent:Notify({ Title = "Copiado!", Content = "Link do GitHub copiado para a área de transferência." })
+    end
+})
+
+-- Exemplo de conteúdo para a aba "Settings"
+Tabs.Settings:AddParagraph({
+    Title = "Configurações",
+    Content = "Aqui você pode ajustar as configurações do script."
+})
+
+-- A aba "🛠️ Main" agora está vazia (como solicitado)
