@@ -1,0 +1,5 @@
+local Games = {
+  [10449761463] = "", -- the strongest battle grounds
+}
+
+return Games
