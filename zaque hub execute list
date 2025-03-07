@@ -1,4 +1,4 @@
-local Games = loadstring(game:HttpGet(""))()
+local Games = loadstring(game:HttpGet("https://raw.githubusercontent.com/zaque-blox/zaque_hub/refs/heads/main/zaque%20hub%20blox%20list"))()
 
 for PlaceID, Execute in pairs(Games) do
     if PlaceID == game.PlaceId then
