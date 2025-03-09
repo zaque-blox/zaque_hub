@@ -1,6 +1,6 @@
 local Games = {
   [10449761463] = "https://raw.githubusercontent.com/zaque-blox/zaque_hub/refs/heads/main/zaque%20hub%20%7C%20the%20strongest%20battle%20grounds", -- the strongest battle grounds
-  [17625359962] = "https://raw.githubusercontent.com/zaque-blox/zaque_hub/refs/heads/main/zaque%20hub%20universal", -- Rivals
+  [18668065416] = "https://raw.githubusercontent.com/zaque-blox/zaque_hub/refs/heads/main/zaque%20hub%20universal", -- Blue Lock: rivals
 }
 
 return Games
