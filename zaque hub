@@ -53,7 +53,17 @@ Tabs.Combate:AddParagraph({
 local camLockAtivo = false
 local mirarNaCabecaAtivo = false
 
--- Função para encontrar o inimigo mais próximo **com vida**
+-- Função para retornar a cor com base no time do jogador
+local function getTeamColor(player)
+    local team = player.Team
+    if team then
+        return team.TeamColor.Color  -- Retorna a cor do time
+    else
+        return Color3.fromRGB(255, 255, 255)  -- Branco para jogadores sem time (se não tiver time definido)
+    end
+end
+
+-- Função para encontrar o inimigo mais próximo **com vida** e de time diferente baseado na cor
 local function encontrarInimigoMaisProximo()
     local nearestPlayer = nil
     local minDistance = math.huge
@@ -61,7 +71,17 @@ local function encontrarInimigoMaisProximo()
     for _, otherPlayer in pairs(game.Players:GetPlayers()) do
         if otherPlayer ~= player and otherPlayer.Character then
             local humanoid = otherPlayer.Character:FindFirstChild("Humanoid")
+            
+            -- Verifica se o jogador está no mesmo time (comparando as cores)
             if humanoid and humanoid.Health > 0 then
+                local playerColor = getTeamColor(player)  -- Cor do time do jogador local
+                local otherPlayerColor = getTeamColor(otherPlayer)  -- Cor do time do outro jogador
+                
+                -- Se as cores forem iguais, o jogador é ignorado
+                if playerColor == otherPlayerColor then
+                    continue
+                end
+
                 local distance = (player.Character.HumanoidRootPart.Position - otherPlayer.Character.HumanoidRootPart.Position).magnitude
                 if distance < minDistance then
                     minDistance = distance
@@ -136,7 +156,7 @@ Tabs.Combate:AddToggle("HeadToggle", {
     end
 })
 
--- Funções ESP Player
+-- Funções ESP
 local espAtivo = false
 local espHealthBarAtivo = false
 local espLineAtivo = false
@@ -180,7 +200,7 @@ local function createOrUpdateHealthBar(player)
     end
 end
 
--- Funções ESP
+-- Função para ativar o ESP dos jogadores
 local function ativarESPPlayer()
     espAtivo = true
     RunService.RenderStepped:Connect(function()
@@ -188,10 +208,12 @@ local function ativarESPPlayer()
         for _, player in pairs(game.Players:GetPlayers()) do
             if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                 if not player.Character:FindFirstChild("Highlight") then
+                    -- Cria o Highlight para o jogador
                     local highlight = Instance.new("Highlight")
                     highlight.Adornee = player.Character
-                    highlight.FillColor = Color3.new(1, 0, 0)
-                    highlight.OutlineColor = Color3.new(1, 0, 0)
+                    local teamColor = getTeamColor(player)  -- Obtém a cor do time do jogador
+                    highlight.FillColor = teamColor
+                    highlight.OutlineColor = teamColor
                     highlight.Parent = player.Character
                 end
             end
@@ -311,6 +333,7 @@ local function desativarESPHitbox()
     table.clear(espHitboxes)
 end
 
+
 -- Botões na Aba Visual
 Tabs.Visual:AddToggle("EspPlayerToggle", {
     Title = "ESP Player",
@@ -326,8 +349,8 @@ Tabs.Visual:AddToggle("EspPlayerToggle", {
 })
 
 Tabs.Visual:AddToggle("EspHealthBarToggle", {
-    Title = "ESP Health Bar",
-    Description = "Ative ou desative a exibição da barra de vida",
+    Title = "ESP HealthBar",
+    Description = "Ative ou desative a exibição das barras de vida",
     Default = false,
     Callback = function(state)
         if state then
@@ -340,7 +363,7 @@ Tabs.Visual:AddToggle("EspHealthBarToggle", {
 
 Tabs.Visual:AddToggle("EspLineToggle", {
     Title = "ESP Line",
-    Description = "Ative ou desative as linhas de ESP entre jogadores",
+    Description = "Ative ou desative as linhas de ESP entre você e os inimigos",
     Default = false,
     Callback = function(state)
         if state then
@@ -353,7 +376,7 @@ Tabs.Visual:AddToggle("EspLineToggle", {
 
 Tabs.Visual:AddToggle("EspHitboxToggle", {
     Title = "ESP Hitbox",
-    Description = "Ative ou desative a exibição da hitbox dos jogadores",
+    Description = "Ative ou desative as hitboxes para os jogadores",
     Default = false,
     Callback = function(state)
         if state then
@@ -363,13 +386,3 @@ Tabs.Visual:AddToggle("EspHitboxToggle", {
         end
     end
 })
-
--- Atualiza ESP quando novos jogadores entram
-game.Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function()
-        if espAtivo then ativarESPPlayer() end
-        if espHealthBarAtivo then ativarESPHealthBar() end
-        if espLineAtivo then ativarESPLine() end
-        if espHitboxAtivo then ativarESPHitbox() end
-    end)
-end)
