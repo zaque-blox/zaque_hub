@@ -28,34 +28,78 @@ Tabs.Combate:AddParagraph({
     Content = "sessão Aimbot"  -- Conteúdo removido
 })
 
--- Aba Credits
-Tabs.Credits:AddParagraph({
-    Title = "Criador do Hub",
-    Content = "Criador do hub feito por [ zaque_blox ]"
-})
+-- Função Aimbot
+local camLockAtivo = false
 
-Tabs.Credits:AddParagraph({
-    Title = "Versão",
-    Content = "2.0"
-})
+local function ativarAimbot()
+    camLockAtivo = true
+    RunService.RenderStepped:Connect(function()
+        if camLockAtivo then
+            local nearestPlayer = nil
+            local minDistance = math.huge
 
--- Adicionar o botão "grupo do zap"
-Tabs.Credits:AddButton({
-    Title = "Grupo do Zap",
-    Description = "Clique para copiar o link do grupo do WhatsApp",
-    Callback = function()
-        -- Copiar link do grupo para a área de transferência
-        setclipboard("https://chat.whatsapp.com/CpJRk0pToQsKx94iKIm2a7")
+            -- Procurando o jogador mais próximo com vida
+            for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+                if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    local distance = (player.Character.HumanoidRootPart.Position - otherPlayer.Character.HumanoidRootPart.Position).magnitude
+                    if distance < minDistance then
+                        minDistance = distance
+                        nearestPlayer = otherPlayer
+                    end
+                end
+            end
+
+            -- Verificando se o jogador mais próximo está vivo
+            if nearestPlayer and nearestPlayer.Character and nearestPlayer.Character:FindFirstChild("Humanoid") then
+                local humanoid = nearestPlayer.Character.Humanoid
+                if humanoid.Health > 0 then
+                    -- O jogador está vivo, miramos nele
+                    local camera = game.Workspace.CurrentCamera
+                    local targetHRP = nearestPlayer.Character.HumanoidRootPart
+                    camera.CFrame = CFrame.new(camera.CFrame.Position, targetHRP.Position)
+                else
+                    -- Se o jogador mais próximo estiver morto, procuramos o próximo jogador vivo
+                    local secondNearestPlayer = nil
+                    local secondMinDistance = math.huge
+                    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+                        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                            local distance = (player.Character.HumanoidRootPart.Position - otherPlayer.Character.HumanoidRootPart.Position).magnitude
+                            if distance < secondMinDistance and otherPlayer.Character.Humanoid.Health > 0 then
+                                secondMinDistance = distance
+                                secondNearestPlayer = otherPlayer
+                            end
+                        end
+                    end
+                    if secondNearestPlayer then
+                        local camera = game.Workspace.CurrentCamera
+                        local targetHRP = secondNearestPlayer.Character.HumanoidRootPart
+                        camera.CFrame = CFrame.new(camera.CFrame.Position, targetHRP.Position)
+                    end
+                end
+            end
+        end
+    end)
+end
+
+local function desativarAimbot()
+    camLockAtivo = false
+end
+
+-- Botões na Aba Combate
+Tabs.Combate:AddToggle("AimbotToggle", {
+    Title = "Aimbot",  -- Nome do botão atualizado para "Aimbot"
+    Description = "Ative ou desative o Aimbot (bloqueio da câmera no inimigo mais próximo)",
+    Default = false,
+    Callback = function(state)
+        if state then
+            ativarAimbot()
+        else
+            desativarAimbot()
+        end
     end
 })
 
--- Aba Settings
-Tabs.Settings:AddParagraph({
-    Title = "Configurações",
-    Content = "Aqui você pode ajustar suas preferências!"
-})
-
--- Variáveis para ESP
+-- Funções ESP Player
 local espAtivo = false
 local espHealthBarAtivo = false
 local espLineAtivo = false
@@ -99,7 +143,7 @@ local function createOrUpdateHealthBar(player)
     end
 end
 
--- Funções ESP Player
+-- Funções ESP
 local function ativarESPPlayer()
     espAtivo = true
     RunService.RenderStepped:Connect(function()
@@ -127,7 +171,6 @@ local function desativarESPPlayer()
     end
 end
 
--- Função ESP Health Bar
 local function ativarESPHealthBar()
     espHealthBarAtivo = true
     RunService.Heartbeat:Connect(function()
@@ -150,7 +193,6 @@ local function desativarESPHealthBar()
     end
 end
 
--- Função ESP Line (Linha Vermelha)
 local function ativarESPLine()
     espLineAtivo = true
     RunService.RenderStepped:Connect(function()
@@ -190,7 +232,6 @@ local function desativarESPLine()
     table.clear(espLines)
 end
 
--- Função ESP Hitbox (verde com transparência)
 local function ativarESPHitbox()
     espHitboxAtivo = true
     for _, player in pairs(game.Players:GetPlayers()) do
@@ -228,53 +269,6 @@ local function desativarESPHitbox()
     end
     table.clear(espHitboxes)
 end
-
--- Função Aimbot
-local camLockAtivo = false
-
-local function ativarAimbot()
-    camLockAtivo = true
-    RunService.RenderStepped:Connect(function()
-        if camLockAtivo then
-            local nearestPlayer = nil
-            local minDistance = math.huge
-
-            for _, otherPlayer in pairs(game.Players:GetPlayers()) do
-                if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                    local distance = (player.Character.HumanoidRootPart.Position - otherPlayer.Character.HumanoidRootPart.Position).magnitude
-                    if distance < minDistance then
-                        minDistance = distance
-                        nearestPlayer = otherPlayer
-                    end
-                end
-            end
-
-            if nearestPlayer then
-                local camera = game.Workspace.CurrentCamera
-                local targetHRP = nearestPlayer.Character.HumanoidRootPart
-                camera.CFrame = CFrame.new(camera.CFrame.Position, targetHRP.Position)
-            end
-        end
-    end)
-end
-
-local function desativarAimbot()
-    camLockAtivo = false
-end
-
--- Botões na Aba Combate
-Tabs.Combate:AddToggle("AimbotToggle", {
-    Title = "Aimbot",  -- Nome do botão atualizado para "Aimbot"
-    Description = "Ative ou desative o Aimbot (bloqueio da câmera no inimigo mais próximo)",
-    Default = false,
-    Callback = function(state)
-        if state then
-            ativarAimbot()
-        else
-            desativarAimbot()
-        end
-    end
-})
 
 -- Botões na Aba Visual
 Tabs.Visual:AddToggle("EspPlayerToggle", {
