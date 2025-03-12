@@ -19,13 +19,13 @@ local Tabs = {
     Settings = Window:AddTab({ Title = "⚙️ Settings" }),
     Main = Window:AddTab({ Title = "🛠️ Main" }),
     Visual = Window:AddTab({ Title = "😎 Visual" }),
-    Combate = Window:AddTab({ Title = "⚔️ Combate" }),  -- Aba Combate
+    Combate = Window:AddTab({ Title = "⚔️ Combate" }),
 }
 
 -- Adicionando apenas o título "Aim" na aba Combate
 Tabs.Combate:AddParagraph({
-    Title = "Aim",
-    Content = "sessão Aimbot"  -- Conteúdo removido
+    Title = "Aim", 
+    Content = "sessão Aimbot"
 })
 
 -- Função Aimbot
@@ -53,10 +53,13 @@ local function ativarAimbot()
             if nearestPlayer and nearestPlayer.Character and nearestPlayer.Character:FindFirstChild("Humanoid") then
                 local humanoid = nearestPlayer.Character.Humanoid
                 if humanoid.Health > 0 then
-                    -- O jogador está vivo, miramos nele
+                    -- O jogador está vivo, miramos na cabeça
                     local camera = game.Workspace.CurrentCamera
-                    local targetHRP = nearestPlayer.Character.HumanoidRootPart
-                    camera.CFrame = CFrame.new(camera.CFrame.Position, targetHRP.Position)
+                    local head = nearestPlayer.Character:FindFirstChild("Head")
+                    if head then
+                        -- Ajusta a câmera para mirar na cabeça do jogador
+                        camera.CFrame = CFrame.new(camera.CFrame.Position, head.Position)
+                    end
                 else
                     -- Se o jogador mais próximo estiver morto, procuramos o próximo jogador vivo
                     local secondNearestPlayer = nil
@@ -72,8 +75,11 @@ local function ativarAimbot()
                     end
                     if secondNearestPlayer then
                         local camera = game.Workspace.CurrentCamera
-                        local targetHRP = secondNearestPlayer.Character.HumanoidRootPart
-                        camera.CFrame = CFrame.new(camera.CFrame.Position, targetHRP.Position)
+                        local head = secondNearestPlayer.Character:FindFirstChild("Head")
+                        if head then
+                            -- Ajusta a câmera para mirar na cabeça do segundo jogador
+                            camera.CFrame = CFrame.new(camera.CFrame.Position, head.Position)
+                        end
                     end
                 end
             end
@@ -87,7 +93,7 @@ end
 
 -- Botões na Aba Combate
 Tabs.Combate:AddToggle("AimbotToggle", {
-    Title = "Aimbot",  -- Nome do botão atualizado para "Aimbot"
+    Title = "Aimbot",
     Description = "Ative ou desative o Aimbot (bloqueio da câmera no inimigo mais próximo)",
     Default = false,
     Callback = function(state)
@@ -198,7 +204,9 @@ local function ativarESPLine()
     RunService.RenderStepped:Connect(function()
         if not espLineAtivo then return end
         for _, line in pairs(espLines) do
-            if line then line:Destroy() end
+            if line then
+                line:Destroy()
+            end
         end
         table.clear(espLines)
 
@@ -227,7 +235,9 @@ end
 local function desativarESPLine()
     espLineAtivo = false
     for _, line in pairs(espLines) do
-        if line then line:Destroy() end
+        if line then
+            line:Destroy()
+        end
     end
     table.clear(espLines)
 end
