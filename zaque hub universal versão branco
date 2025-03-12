@@ -22,6 +22,28 @@ local Tabs = {
     Combate = Window:AddTab({ Title = "⚔️ Combate" }),
 }
 
+-- Adicionando o nome do Criador na aba Credits
+Tabs.Credits:AddParagraph({
+    Title = "Criador", 
+    Content = "feito somente por { zaque_blox - zaquel }"
+})
+
+-- Adicionando o nome "versão" com o conteúdo "2.0" na aba Credits
+Tabs.Credits:AddParagraph({
+    Title = "Versão", 
+    Content = "2.0"
+})
+
+-- Criar o botão "Grupo do zap" na aba Credits
+Tabs.Credits:AddButton({
+    Title = "Grupo do zap",
+    Description = "Clique para copiar o link do grupo do zap.",
+    Callback = function()
+        -- Copiar o link para a área de transferência
+        setclipboard("https://chat.whatsapp.com/CpJRk0pToQsKx94iKIm2a7")
+    end
+})
+
 -- Adicionando apenas o título "Aim" na aba Combate
 Tabs.Combate:AddParagraph({
     Title = "Aim", 
