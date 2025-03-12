@@ -39,7 +39,6 @@ Tabs.Credits:AddButton({
     Title = "Grupo do zap",
     Description = "Clique para copiar o link do grupo do zap.",
     Callback = function()
-        -- Copiar o link para a área de transferência
         setclipboard("https://chat.whatsapp.com/CpJRk0pToQsKx94iKIm2a7")
     end
 })
@@ -50,59 +49,59 @@ Tabs.Combate:AddParagraph({
     Content = "sessão Aimbot"
 })
 
--- Função Aimbot
+-- Variáveis de controle
 local camLockAtivo = false
+local mirarNaCabecaAtivo = false
 
+-- Função para encontrar o inimigo mais próximo **com vida**
+local function encontrarInimigoMaisProximo()
+    local nearestPlayer = nil
+    local minDistance = math.huge
+
+    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character then
+            local humanoid = otherPlayer.Character:FindFirstChild("Humanoid")
+            if humanoid and humanoid.Health > 0 then
+                local distance = (player.Character.HumanoidRootPart.Position - otherPlayer.Character.HumanoidRootPart.Position).magnitude
+                if distance < minDistance then
+                    minDistance = distance
+                    nearestPlayer = otherPlayer
+                end
+            end
+        end
+    end
+
+    return nearestPlayer
+end
+
+-- Função do Aimbot
 local function ativarAimbot()
     camLockAtivo = true
     RunService.RenderStepped:Connect(function()
         if camLockAtivo then
-            local nearestPlayer = nil
-            local minDistance = math.huge
+            local nearestPlayer = encontrarInimigoMaisProximo()
+            
+            if nearestPlayer and nearestPlayer.Character then
+                local humanoid = nearestPlayer.Character:FindFirstChild("Humanoid")
 
-            -- Procurando o jogador mais próximo com vida
-            for _, otherPlayer in pairs(game.Players:GetPlayers()) do
-                if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                    local distance = (player.Character.HumanoidRootPart.Position - otherPlayer.Character.HumanoidRootPart.Position).magnitude
-                    if distance < minDistance then
-                        minDistance = distance
-                        nearestPlayer = otherPlayer
-                    end
-                end
-            end
-
-            -- Verificando se o jogador mais próximo está vivo
-            if nearestPlayer and nearestPlayer.Character and nearestPlayer.Character:FindFirstChild("Humanoid") then
-                local humanoid = nearestPlayer.Character.Humanoid
-                if humanoid.Health > 0 then
-                    -- O jogador está vivo, miramos na cabeça
+                -- Verifica se o inimigo ainda está vivo
+                if humanoid and humanoid.Health > 0 then
                     local camera = game.Workspace.CurrentCamera
-                    local head = nearestPlayer.Character:FindFirstChild("Head")
-                    if head then
-                        -- Ajusta a câmera para mirar na cabeça do jogador
-                        camera.CFrame = CFrame.new(camera.CFrame.Position, head.Position)
+                    local targetPart
+
+                    -- Se "Head" estiver ativado, mira na cabeça; senão, mira no corpo
+                    if mirarNaCabecaAtivo and nearestPlayer.Character:FindFirstChild("Head") then
+                        targetPart = nearestPlayer.Character.Head
+                    else
+                        targetPart = nearestPlayer.Character:FindFirstChild("HumanoidRootPart")
+                    end
+
+                    if targetPart then
+                        camera.CFrame = CFrame.new(camera.CFrame.Position, targetPart.Position)
                     end
                 else
-                    -- Se o jogador mais próximo estiver morto, procuramos o próximo jogador vivo
-                    local secondNearestPlayer = nil
-                    local secondMinDistance = math.huge
-                    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
-                        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                            local distance = (player.Character.HumanoidRootPart.Position - otherPlayer.Character.HumanoidRootPart.Position).magnitude
-                            if distance < secondMinDistance and otherPlayer.Character.Humanoid.Health > 0 then
-                                secondMinDistance = distance
-                                secondNearestPlayer = otherPlayer
-                            end
-                        end
-                    end
-                    if secondNearestPlayer then
-                        local camera = game.Workspace.CurrentCamera
-                        local head = secondNearestPlayer.Character:FindFirstChild("Head")
-                        if head then
-                            -- Ajusta a câmera para mirar na cabeça do segundo jogador
-                            camera.CFrame = CFrame.new(camera.CFrame.Position, head.Position)
-                        end
-                    end
+                    -- Se o jogador morreu, procura outro vivo automaticamente
+                    nearestPlayer = encontrarInimigoMaisProximo()
                 end
             end
         end
@@ -113,7 +112,7 @@ local function desativarAimbot()
     camLockAtivo = false
 end
 
--- Botões na Aba Combate
+-- Toggle para ativar/desativar o Aimbot
 Tabs.Combate:AddToggle("AimbotToggle", {
     Title = "Aimbot",
     Description = "Ative ou desative o Aimbot (bloqueio da câmera no inimigo mais próximo)",
@@ -124,6 +123,16 @@ Tabs.Combate:AddToggle("AimbotToggle", {
         else
             desativarAimbot()
         end
+    end
+})
+
+-- Toggle para ativar/desativar mira na cabeça
+Tabs.Combate:AddToggle("HeadToggle", {
+    Title = "Head",
+    Description = "Quando ativado, o Aimbot mira na cabeça do inimigo mais próximo",
+    Default = false,
+    Callback = function(state)
+        mirarNaCabecaAtivo = state
     end
 })
 
