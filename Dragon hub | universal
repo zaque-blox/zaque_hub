@@ -1,4 +1,13 @@
-local player = game.Players.LocalPlayer or game.Players.PlayerAdded:Wait()
+-- Aguarda até que o LocalPlayer esteja disponível com uma verificação mais robusta
+local Players = game:GetService("Players")
+local player
+repeat
+    player = Players.LocalPlayer
+    if not player then
+        task.wait(0.1) -- Aguarda um pouco antes de tentar novamente
+    end
+until player
+
 local playerGui = player:WaitForChild("PlayerGui") 
 local RunService = game:GetService("RunService")
 
@@ -7,7 +16,7 @@ local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao1
 local Window = redzlib:MakeWindow({
     Title = "Dragon Hub | Universal",
     SubTitle = "by zaque_blox",
-    SaveFolder = "Dragon_hub.json"
+    SaveFolder = "Dragon_Hub_universal.json"
 })
 
 Window:AddMinimizeButton({
@@ -25,10 +34,10 @@ local Tabs = {
 }
 
 -- Aba Info
-local InfoSection = Tabs.Info:AddSection({"Informações Gerais"})
+local InfoSection = Tabs.Info:AddSection({"Info"})
 local CriadorParagraph = Tabs.Info:AddParagraph({"Criador", "feito somente por { zaque_blox - zaquel }"})
 local VersaoParagraph = Tabs.Info:AddParagraph({"Versão", "2.0"})
-local GrupoSection = Tabs.Info:AddSection({"Links"})
+local GrupoSection = Tabs.Info:AddSection({"Link"})
 local GrupoZapButton = Tabs.Info:AddButton({"Grupo do zap", 
     Callback = function() 
         setclipboard("https://chat.whatsapp.com/CpJRk0pToQsKx94iKIm2a7") 
@@ -36,7 +45,7 @@ local GrupoZapButton = Tabs.Info:AddButton({"Grupo do zap",
 })
 
 -- Aba Main
-local MainSection = Tabs.Main:AddSection({"Funcionalidades Principais"})
+local MainSection = Tabs.Main:AddSection({"Main"})
 
 -- Variáveis de controle 
 local camLockAtivo = false 
@@ -63,7 +72,7 @@ local function encontrarInimigoMaisProximo()
     local nearestPlayer = nil 
     local minDistance = math.huge
     if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return nil end
-    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+    for _, otherPlayer in pairs(Players:GetPlayers()) do
         if otherPlayer ~= player and otherPlayer.Character then
             local humanoid = otherPlayer.Character:FindFirstChild("Humanoid")
             if humanoid and humanoid.Health > 0 then  
@@ -87,7 +96,7 @@ local function encontrarInimigoMaisProximo()
 end
 
 local function ativarAimbot() 
-    if aimbotConnection then aimbotConnection six:Disconnect() end
+    if aimbotConnection then aimbotConnection:Disconnect() end
     camLockAtivo = true 
     aimbotConnection = RunService.RenderStepped:Connect(function() 
         if not camLockAtivo then return end
@@ -117,7 +126,7 @@ local function desativarAimbot()
 end
 
 local function atualizarESP()
-    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+    for _, otherPlayer in pairs(Players:GetPlayers()) do
         if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("Highlight") then
             local highlight = otherPlayer.Character.Highlight
             if espTeamCheckAtivo then
@@ -167,7 +176,7 @@ local function ativarESPPlayer()
     espAtivo = true 
     spawn(function()
         while espAtivo do
-            for _, otherPlayer in pairs(game.Players:GetPlayers()) do 
+            for _, otherPlayer in pairs(Players:GetPlayers()) do 
                 if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then 
                     if not otherPlayer.Character:FindFirstChild("Highlight") then 
                         local highlight = Instance.new("Highlight") 
@@ -190,7 +199,7 @@ end
 
 local function desativarESPPlayer() 
     espAtivo = false 
-    for _, otherPlayer in pairs(game.Players:GetPlayers()) do 
+    for _, otherPlayer in pairs(Players:GetPlayers()) do 
         if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("Highlight") then 
             otherPlayer.Character.Highlight:Destroy() 
         end 
@@ -202,7 +211,7 @@ local function ativarESPHealthBar()
     espHealthBarAtivo = true 
     espHealthConnection = RunService.Heartbeat:Connect(function() 
         if not espHealthBarAtivo then return end
-        for _, otherPlayer in pairs(game.Players:GetPlayers()) do 
+        for _, otherPlayer in pairs(Players:GetPlayers()) do 
             if otherPlayer ~= player then 
                 createOrUpdateHealthBar(otherPlayer) 
             end 
@@ -216,7 +225,7 @@ local function desativarESPHealthBar()
         espHealthConnection:Disconnect()
         espHealthConnection = nil
     end
-    for _, otherPlayer in pairs(game.Players:GetPlayers()) do 
+    for _, otherPlayer in pairs(Players:GetPlayers()) do 
         if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HealthBar") then 
             otherPlayer.Character.HealthBar:Destroy() 
         end 
@@ -233,7 +242,7 @@ local function ativarESPLine()
         end 
         table.clear(espLines)
         if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
-        for _, target in pairs(game.Players:GetPlayers()) do
+        for _, target in pairs(Players:GetPlayers()) do
             if target ~= player and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
                 local targetHRP = target.Character.HumanoidRootPart
                 local playerHRP = player.Character.HumanoidRootPart
@@ -267,7 +276,7 @@ end
 
 local function ativarESPHitbox() 
     espHitboxAtivo = true 
-    for _, otherPlayer in pairs(game.Players:GetPlayers()) do 
+    for _, otherPlayer in pairs(Players:GetPlayers()) do 
         if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then 
             local humanoidRootPart = otherPlayer.Character.HumanoidRootPart 
             local hitbox = Instance.new("Part") 
@@ -277,10 +286,9 @@ local function ativarESPHitbox()
             hitbox.Anchored = true 
             hitbox.CanCollide = false 
             hitbox.Color = Color3.fromRGB(0, 255, 0)
-            hitbox.Material = Enum.Material.Neon -- Usando Neon para maior visibilidade
-            hitbox.Transparency = 0.3 -- Menos transparente para ser visível através de paredes
+            hitbox.Material = Enum.Material.Neon
+            hitbox.Transparency = 0.3
             hitbox.Parent = workspace 
-            -- Adiciona um Highlight para garantir visibilidade através de paredes
             local highlight = Instance.new("Highlight")
             highlight.Adornee = hitbox
             highlight.FillColor = Color3.fromRGB(0, 255, 0)
@@ -311,9 +319,9 @@ local function desativarESPHitbox()
 end
 
 -- Aba Esp
-local EspSection = Tabs.Esp:AddSection({"Opções de ESP"})
+local EspSection = Tabs.Esp:AddSection({"esp"})
 local EspPlayerToggle = Tabs.Esp:AddToggle({
-    Name = "ESP Player",
+    Name = "Player",
     Default = false,
     Callback = function(state) 
         if state then 
@@ -327,7 +335,7 @@ local EspPlayerToggle = Tabs.Esp:AddToggle({
     end 
 })
 local EspHealthBarToggle = Tabs.Esp:AddToggle({
-    Name = "ESP HealthBar",
+    Name = "HealthBar",
     Default = false,
     Callback = function(state) 
         if state then 
@@ -338,7 +346,7 @@ local EspHealthBarToggle = Tabs.Esp:AddToggle({
     end 
 })
 local EspLineToggle = Tabs.Esp:AddToggle({
-    Name = "ESP Line",
+    Name = "Line",
     Default = false,
     Callback = function(state) 
         if state then 
@@ -349,7 +357,7 @@ local EspLineToggle = Tabs.Esp:AddToggle({
     end 
 })
 local EspHitboxToggle = Tabs.Esp:AddToggle({
-    Name = "ESP Hitbox",
+    Name = "Hitbox",
     Default = false,
     Callback = function(state) 
         if state then 
@@ -361,8 +369,7 @@ local EspHitboxToggle = Tabs.Esp:AddToggle({
 })
 
 -- Aba Combate
-local CombateSection = Tabs.Combate:AddSection({"Aimbot"})
-local AimParagraph = Tabs.Combate:AddParagraph({"Aim", "sessão Aimbot"})
+local CombateSection = Tabs.Combate:AddSection({"Aim"})
 local AimbotToggle = Tabs.Combate:AddToggle({
     Name = "Aimbot",
     Default = false,
@@ -383,7 +390,7 @@ local HeadToggle = Tabs.Combate:AddToggle({
 })
 
 -- Aba Settings
-local SettingsSection = Tabs.Settings:AddSection({"Configurações Gerais"})
+local SettingsSection = Tabs.Settings:AddSection({"settings"})
 local TeamCheckToggle = Tabs.Settings:AddToggle({
     Name = "Team Check Aimbot",
     Default = true,
