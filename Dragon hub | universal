@@ -7,7 +7,7 @@ local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao1
 local Window = redzlib:MakeWindow({
     Title = "Dragon Hub | Universal",
     SubTitle = "by zaque_blox",
-    SaveFolder = "Dragon Hub Teste"
+    SaveFolder = "Dragon_hub.json"
 })
 
 Window:AddMinimizeButton({
