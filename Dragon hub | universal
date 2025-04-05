@@ -807,7 +807,6 @@ local TeamCheckToggle = Tabs.Settings:AddToggle({
     Callback = function(state) 
         teamCheckAtivo = state 
     end
-    flag = "Team Check Aimbot"
 })
 local TeamCheckEspPlayerToggle = Tabs.Settings:AddToggle({
     Name = "Team Check Esp player",
@@ -819,3 +818,7 @@ local TeamCheckEspPlayerToggle = Tabs.Settings:AddToggle({
         end
     end 
 })
+
+Tabs.Main:AddSlider({Name = "Notificação", Max = 120, Min = 5, Increase = 1, Default = 15, Callback = function(Value)
+    NotifyTime = Value
+end, Flag = "Sla"})
